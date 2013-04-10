@@ -1,0 +1,137 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>IE Pointer Events</title>
+<style>
+body {
+	background-color:black;
+	margin: 0;
+}
+@keyframes mask-ani {
+	from { height: 0px; }
+	50% { height: 300px; }
+	to { height: 0px; }
+}
+@-webkit-keyframes mask-ani {
+	from { height: 0px; }
+	50% { height: 300px; }
+	to { height: 0px; }
+}
+#mask-wrapper {
+	pointer-events:none;
+	position: absolute;
+	width: 300px;
+	height: 300px;
+	left: 0;
+	top: 0;
+	z-index: 2;
+
+	animation: mask-ani 1s linear infinite;
+	-webkit-animation: mask-ani 1s linear infinite;
+}
+#mask {
+	background-color: yellow;
+	opacity: .5;
+	width: 100%;
+	height: 100%;
+
+}
+#button-wrapper {
+	border: 1px solid white;
+	position: absolute;
+	width: 50px;
+	height: 50px;
+	left: 100px;
+	top: 100px;
+	z-index: 1;
+}
+#button {
+	border: 1px solid white;
+	position: absolute;
+	width: 30px;
+	height: 30px;
+	left: 10px;
+	top: 10px;
+	z-index: 1;
+}
+</style>
+</head>
+<body>
+<div id="mask-wrapper"><div id="mask"></div></div>
+<div id="button-wrapper"><div id="button"></div></div>
+<script>
+(function (ua, doc) {
+	if (ua.indexOf('MSIE 10.0;') == -1) // test nativly support pointerevent
+		return;
+	if (!('onmspointerdown' in doc))
+		return;
+	if (!('msElementsFromPoint' in doc))
+		return;
+
+	function msPointerListener(event) {
+		var target = event.target,
+		    elements, targetEvent, targetElement = null;
+
+		if (target.currentStyle.pointerEvents === 'none') {
+			event.stopPropagation();
+			event.preventDefault();
+
+			elements = doc.msElementsFromPoint(event.pageX, event.pageY);
+			for (var i = 0, l = elements.length; i < l; i++) {
+				if (elements[i].currentStyle.pointerEvents !== 'none') {
+					targetElement = elements[i];
+					break;
+				}
+			}
+			if (targetElement !== null) {
+				targetEvent = doc.createEvent('MSPointerEvent');
+				targetEvent.initPointerEvent(
+					event.type,
+					event.bubbles,
+					event.cancelable,
+					event.view,
+					event.detail,
+					event.screenX,
+					event.screenY,
+					event.clientX,
+					event.clientY,
+					event.ctrlKey,
+					event.altKey,
+					event.shiftKey,
+					event.metaKey,
+					event.button,
+					event.relatedTarget,
+					event.offsetX,
+					event.offsetY,
+					event.width,
+					event.height,
+					event.pressure,
+					event.rotation,
+					event.tiltX,
+					event.tiltY,
+					event.pointerId,
+					event.pointerType,
+					event.hwTimestamp,
+					event.isPrimary);
+				targetElement.dispatchEvent(targetEvent);
+			}
+		}
+	}
+
+	doc.addEventListener('MSPointerDown', msPointerListener, true);
+	doc.addEventListener('MSPointerUp', msPointerListener, true);
+})(navigator.userAgent, document);
+</script>
+<script>
+(function () {
+	var button = document.getElementById('button'),
+	    mask = document.getElementById('mask');
+	button.onmspointerdown = function () { button.style.backgroundColor = 'white'; };
+	button.onmspointerup = function (event) { button.style.backgroundColor = ''; };
+	mask.onmspointerdown = function () { mask.style.backgroundColor = 'red'; };
+	mask.onmspointerup = function (event) { mask.style.backgroundColor = ''; };
+})();
+</script>
+</body>
+</html>
