@@ -62,13 +62,21 @@ body {
 <div id="button-wrapper"><div id="button"></div></div>
 <script>
 (function (ua, doc) {
-	if (ua.indexOf('MSIE 10.0;') == -1) // test nativly support pointerevent
+
+	function supportPointerEvents() {
+		var element = doc.createElement('div');
+		element.style.pointerEvents = 'auto'
+		element.style.pointerEvents = 'unsupported';
+		return element.style.pointerEvents === 'auto';
+	}
+
+	if (supportPointerEvents()) // test nativly support pointerevent
 		return;
 	if (!('onmspointerdown' in doc))
 		return;
 	if (!('msElementsFromPoint' in doc))
 		return;
-
+	
 	function msPointerListener(event) {
 		var target = event.target,
 		    elements, targetEvent, targetElement = null;
